@@ -204,6 +204,32 @@ http://localhost:8080/api-docs
 
 ---
 
+## Colección Postman
+
+El archivo `Liverpool-Users-API.postman_collection.json` incluye los 5 endpoints listos para ejecutar.
+
+**Importar:**
+1. Abrir Postman → **Import**
+2. Seleccionar `Liverpool-Users-API.postman_collection.json`
+
+**Variables de la colección:**
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `baseUrl` | `http://localhost:8080` | URL base de la API |
+| `userId` | *(vacío)* | Se llena automáticamente al crear un usuario |
+
+**Flujo de prueba sugerido:**
+1. `POST /users` — crea el usuario y guarda el `id` en `{{userId}}`
+2. `GET /users` — lista paginada
+3. `GET /users/{{userId}}` — consulta por ID
+4. `PATCH /users/{{userId}}` — actualización parcial
+5. `DELETE /users/{{userId}}` — eliminación
+
+Cada request incluye tests automáticos que verifican el status HTTP y la estructura de la respuesta.
+
+---
+
 ## Compilar sin tests
 
 ```bash

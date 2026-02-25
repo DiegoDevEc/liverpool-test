@@ -1,0 +1,637 @@
+{
+  "info": {
+    "name": "Liverpool Users API",
+    "_postman_id": "liverpool-users-api-v1",
+    "description": "Microservicio de gestión de usuarios con integración COPOMEX.\n\nBase URL: {{baseUrl}}\n\nEstructura:\n- POST   /api/v1/users        → Crear usuario\n- GET    /api/v1/users        → Listar usuarios (paginado)\n- GET    /api/v1/users/:id    → Obtener usuario por ID\n- PATCH  /api/v1/users/:id    → Actualización parcial\n- DELETE /api/v1/users/:id    → Eliminar usuario\n\nVariable de entorno requerida: {{baseUrl}} = http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "Se actualiza automáticamente al crear un usuario"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Crear usuario",
+      "item": [
+        {
+          "name": "Crear usuario — Exitoso (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene id', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('id');",
+                  "    pm.collectionVariables.set('userId', json.id);",
+                  "    console.log('userId guardado:', json.id);",
+                  "});",
+                  "",
+                  "pm.test('Dirección enriquecida por COPOMEX', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.address).to.have.property('municipality');",
+                  "    pm.expect(json.address).to.have.property('state');",
+                  "    pm.expect(json.address.neighborhoods).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"postalCode\": \"06600\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Crea un nuevo usuario. El código postal se envía a COPOMEX para resolver la dirección completa automáticamente.\n\n**Validaciones:**\n- name: obligatorio\n- paternalLastName: obligatorio\n- email: obligatorio, formato válido\n- postalCode: obligatorio, exactamente 5 dígitos"
+          },
+          "response": [
+            {
+              "name": "201 Created — Usuario creado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ana\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"postalCode\": \"06600\"\n}"
+                },
+                "url": {"raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"]}
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"64a1b2c3d4e5f6a7b8c9d0e1\",\n  \"name\": \"Ana\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"address\": {\n    \"postalCode\": \"06600\",\n    \"municipality\": \"Cuauhtémoc\",\n    \"state\": \"Ciudad de México\",\n    \"city\": \"Ciudad de México\",\n    \"neighborhoods\": [\"Juárez\", \"Cuauhtémoc\", \"Roma Norte\"],\n    \"country\": \"México\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Crear usuario — Error 400 (validación)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene estructura de error', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('timestamp');",
+                  "    pm.expect(json).to.have.property('status');",
+                  "    pm.expect(json).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"paternalLastName\": \"López\",\n  \"email\": \"no-es-un-email\",\n  \"postalCode\": \"ABC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Demuestra validaciones: name vacío, email inválido y postalCode con letras."
+          },
+          "response": [
+            {
+              "name": "400 Bad Request — Validación fallida",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"\",\n  \"email\": \"no-es-un-email\",\n  \"postalCode\": \"ABC\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"]}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"timestamp\": \"2026-02-25T10:30:45.123456\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"name: must not be blank, email: must be a well-formed email address, postalCode: must match \\\"^\\\\d{5}$\\\"\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Crear usuario — Error 409 (email duplicado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de email duplicado', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('Email already registered');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"postalCode\": \"06600\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Enviar el mismo email que ya fue registrado. Ejecutar después de 'Crear usuario — Exitoso'."
+          },
+          "response": [
+            {
+              "name": "409 Conflict — Email duplicado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"Ana\",\n  \"email\": \"ana.lopez@example.com\",\n  \"postalCode\": \"06600\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"]}
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"timestamp\": \"2026-02-25T10:30:45.123456\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"Email already registered\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Listar usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios — Sin paginación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene estructura paginada', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('content');",
+                  "    pm.expect(json).to.have.property('page');",
+                  "    pm.expect(json).to.have.property('size');",
+                  "    pm.expect(json).to.have.property('totalElements');",
+                  "    pm.expect(json).to.have.property('totalPages');",
+                  "    pm.expect(json.content).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Lista todos los usuarios con paginación por defecto (page=0, size=20, sort=name)."
+          },
+          "response": [
+            {
+              "name": "200 OK — Lista paginada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": \"64a1b2c3d4e5f6a7b8c9d0e1\",\n      \"name\": \"Ana\",\n      \"paternalLastName\": \"López\",\n      \"maternalLastName\": \"Martínez\",\n      \"email\": \"ana.lopez@example.com\",\n      \"address\": {\n        \"postalCode\": \"06600\",\n        \"municipality\": \"Cuauhtémoc\",\n        \"state\": \"Ciudad de México\",\n        \"city\": \"Ciudad de México\",\n        \"neighborhoods\": [\"Juárez\", \"Cuauhtémoc\", \"Roma Norte\"],\n        \"country\": \"México\"\n      }\n    }\n  ],\n  \"page\": 0,\n  \"size\": 20,\n  \"totalElements\": 1,\n  \"totalPages\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar usuarios — Con paginación y orden",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Paginación correcta', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.size).to.equal(5);",
+                  "    pm.expect(json.page).to.equal(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users?page=0&size=5&sort=name,asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"],
+              "query": [
+                {"key": "page", "value": "0", "description": "Página (base 0)"},
+                {"key": "size", "value": "5", "description": "Elementos por página"},
+                {"key": "sort", "value": "name,asc", "description": "Campo y dirección (asc/desc)"}
+              ]
+            },
+            "description": "Lista usuarios con paginación explícita: 5 por página, ordenados por nombre ascendente."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Obtener usuario por ID",
+      "item": [
+        {
+          "name": "Obtener usuario — Exitoso (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('ID coincide con el solicitado', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.id).to.equal(pm.collectionVariables.get('userId'));",
+                  "});",
+                  "",
+                  "pm.test('Dirección presente', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.address).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            },
+            "description": "Obtiene el usuario cuyo ID fue guardado automáticamente al crear. Asegúrate de ejecutar primero 'Crear usuario — Exitoso'."
+          },
+          "response": [
+            {
+              "name": "200 OK — Usuario encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"64a1b2c3d4e5f6a7b8c9d0e1\",\n  \"name\": \"Ana\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"address\": {\n    \"postalCode\": \"06600\",\n    \"municipality\": \"Cuauhtémoc\",\n    \"state\": \"Ciudad de México\",\n    \"city\": \"Ciudad de México\",\n    \"neighborhoods\": [\"Juárez\", \"Cuauhtémoc\", \"Roma Norte\"],\n    \"country\": \"México\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Obtener usuario — Error 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Estructura de error correcta', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.equal(404);",
+                  "    pm.expect(json).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/000000000000000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "000000000000000000000000"]
+            },
+            "description": "ID inexistente para demostrar respuesta 404."
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/api/v1/users/000000000000000000000000", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "000000000000000000000000"]}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"timestamp\": \"2026-02-25T10:30:45.123456\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User not found with id: 000000000000000000000000\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Actualización parcial (PATCH)",
+      "item": [
+        {
+          "name": "Actualizar nombre — Exitoso (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Nombre actualizado', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.name).to.equal('Ana Sofía');",
+                  "});",
+                  "",
+                  "pm.test('Otros campos intactos', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.email).to.equal('ana.lopez@example.com');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Sofía\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            },
+            "description": "Actualiza solo el nombre. Los demás campos (email, dirección, apellidos) conservan su valor."
+          },
+          "response": [
+            {
+              "name": "200 OK — Solo nombre actualizado",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"Ana Sofía\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"64a1b2c3d4e5f6a7b8c9d0e1\",\n  \"name\": \"Ana Sofía\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"address\": {\n    \"postalCode\": \"06600\",\n    \"municipality\": \"Cuauhtémoc\",\n    \"state\": \"Ciudad de México\",\n    \"city\": \"Ciudad de México\",\n    \"neighborhoods\": [\"Juárez\", \"Cuauhtémoc\", \"Roma Norte\"],\n    \"country\": \"México\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Actualizar código postal — Re-consulta COPOMEX",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Dirección actualizada al nuevo CP', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.address.postalCode).to.equal('44100');",
+                  "    pm.expect(json.address.state).to.include('Jalisco');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postalCode\": \"44100\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            },
+            "description": "Cambia el código postal. El servicio vuelve a consultar COPOMEX y actualiza municipio, estado, ciudad y colonias."
+          },
+          "response": [
+            {
+              "name": "200 OK — Dirección actualizada con nuevo CP",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"postalCode\": \"44100\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"id\": \"64a1b2c3d4e5f6a7b8c9d0e1\",\n  \"name\": \"Ana Sofía\",\n  \"paternalLastName\": \"López\",\n  \"maternalLastName\": \"Martínez\",\n  \"email\": \"ana.lopez@example.com\",\n  \"address\": {\n    \"postalCode\": \"44100\",\n    \"municipality\": \"Guadalajara\",\n    \"state\": \"Jalisco\",\n    \"city\": \"Guadalajara\",\n    \"neighborhoods\": [\"Centro\", \"El Retiro\"],\n    \"country\": \"México\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Actualizar usuario — Error 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/000000000000000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "000000000000000000000000"]
+            },
+            "description": "Intenta actualizar un usuario con ID inexistente."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Eliminar usuario",
+      "item": [
+        {
+          "name": "Eliminar usuario — Exitoso (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Cuerpo vacío', () => {",
+                  "    pm.expect(pm.response.text()).to.equal('');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{userId}}"]
+            },
+            "description": "Elimina permanentemente el usuario. Responde con 204 y cuerpo vacío."
+          },
+          "response": [
+            {
+              "name": "204 No Content — Eliminado",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"]}
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Eliminar usuario — Error 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Estructura de error correcta', () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.equal(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/000000000000000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "000000000000000000000000"]
+            },
+            "description": "Intenta eliminar un ID inexistente."
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/api/v1/users/000000000000000000000000", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "000000000000000000000000"]}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"timestamp\": \"2026-02-25T10:30:45.123456\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"User not found with id: 000000000000000000000000\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
