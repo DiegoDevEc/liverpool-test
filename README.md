@@ -190,7 +190,17 @@ Los tests son completamente independientes de infraestructura externa: MongoDB y
 
 ## Swagger UI
 
-Con la aplicación corriendo:
+### Entorno productivo (VPS)
+
+Disponible en línea sin necesidad de levantar nada localmente:
+
+```
+https://app.app-escom.org/swagger-ui/index.html
+```
+
+### Entorno local
+
+Con la aplicación corriendo localmente:
 
 ```
 http://localhost:8080/swagger-ui.html
