@@ -9,12 +9,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @SpringBootTest
 @TestPropertySource(properties = {
         "spring.cache.type=none",
+        "management.health.redis.enabled=false",
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration," +
                 "org.springframework.boot.data.mongodb.autoconfigure.DataMongoAutoConfiguration," +
-                "org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration," +
-                "org.springframework.boot.data.redis.autoconfigure.RedisAutoConfiguration," +
-                "org.springframework.boot.data.redis.autoconfigure.RedisRepositoriesAutoConfiguration"
+                "org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration"
 })
 class LiverpoolTestApplicationTests {
 

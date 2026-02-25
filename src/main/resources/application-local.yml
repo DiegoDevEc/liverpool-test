@@ -1,9 +1,9 @@
 spring:
   mongodb:
-    uri: "${MONGODB_URI:localhost:27017}"
+    uri: "${MONGODB_URI:mongodb://localhost:27017}"
   data:
     redis:
-      url: "${REDIS_URL:localhost:6379}"
+      url: "${REDIS_URL:redis://localhost:6379}"
 
 copomex:
   api:
