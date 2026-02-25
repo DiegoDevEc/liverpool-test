@@ -7,7 +7,7 @@ spring:
 
 copomex:
   api:
-    token: ${COPOMEX_TOKEN:pruebas}
+    token: ${COPOMEX_TOKEN:TOKEN}
 
 logging:
   level:

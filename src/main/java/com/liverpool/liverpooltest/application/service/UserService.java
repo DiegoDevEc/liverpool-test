@@ -57,7 +57,7 @@ public class UserService implements UserUseCase {
         log.info("Updating user with id: {}", id);
         User existing = userRepositoryPort.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("User not found with id: {}", id);
+                    log.warn("User not found with id from update user: {}", id);
                     return new UserNotFoundException(id);
                 });
         Address address = command.postalCode() != null
@@ -79,7 +79,7 @@ public class UserService implements UserUseCase {
     public void deleteUser(String id) {
         log.info("Deleting user with id: {}", id);
         if (!userRepositoryPort.existsById(id)) {
-            log.warn("User not found with id: {}", id);
+            log.warn("User not found with id from delete user: {}", id);
             throw new UserNotFoundException(id);
         }
         userRepositoryPort.deleteById(id);

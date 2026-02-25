@@ -6,11 +6,14 @@ copomex:
   api:
     token: ${COPOMEX_TOKEN}
 
+openapi:
+  server-url: https://app.app-escom.org
+
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
   api-docs:
-    enabled: false
+    enabled: true
 
 logging:
   level:
