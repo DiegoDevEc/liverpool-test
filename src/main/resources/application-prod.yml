@@ -1,0 +1,18 @@
+spring:
+  mongodb:
+    uri: ${MONGODB_URI}
+
+copomex:
+  api:
+    token: ${COPOMEX_TOKEN}
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.liverpool: INFO

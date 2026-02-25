@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: liverpool-test
+  profiles:
+    active: local
+  cache:
+    type: redis
+  data:
+    mongodb:
+      auto-index-creation: true
+    redis:
+      url: "${REDIS_URL:redis://localhost:6379}"
+
+cache:
+  addresses:
+    ttl-hours: 24
+
+server:
+  port: 8080
+
+copomex:
+  api:
+    url: https://api.copomex.com
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
