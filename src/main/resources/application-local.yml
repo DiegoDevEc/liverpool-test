@@ -1,9 +1,9 @@
 spring:
   mongodb:
-    uri: "${MONGODB_URI:mongodb://appuser:apppassword@31.97.136.174:27017/liverpool_users?directConnection=true}"
+    uri: "${MONGODB_URI:localhost:27017}"
   data:
     redis:
-      url: "${REDIS_URL:redis://default:zwGKuZERna19OMpIUL6DciiD0eHsjZEfNC5q5hok5jAZHDbW0kOjjTomrX6S85TA@31.97.136.174:6379/0}"
+      url: "${REDIS_URL:localhost:6379}"
 
 copomex:
   api:
